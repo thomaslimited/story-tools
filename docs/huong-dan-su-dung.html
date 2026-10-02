@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>StoryTools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" />
+<style>
+  /* Layout: một cột đọc dọc, mục lục dính bên trái từ 960px trở lên. Màu lấy theo giao diện tool. */
+  :root {
+    --paper: #f5f1e8;
+    --card: #fffdf8;
+    --line: #e2d9c6;
+    --ink: #2b2118;
+    --muted: #7d705c;
+    --brand: #c8621e;
+    --mark: #1e7bff;
+    --warn-bg: #fff3d6;
+    --warn-ink: #8a5a00;
+    --code-bg: #efe8d8;
+    --font-display: 'Baloo 2', 'Be Vietnam Pro', system-ui, sans-serif;
+    --font-body: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --paper: #1b1611;
+      --card: #241d16;
+      --line: #3b3127;
+      --ink: #f0e7d8;
+      --muted: #b4a68e;
+      --brand: #f08b3c;
+      --mark: #7cb0ff;
+      --warn-bg: #3a2c12;
+      --warn-ink: #f3c87a;
+      --code-bg: #2e2619;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme='dark'] {
+    --paper: #1b1611;
+    --card: #241d16;
+    --line: #3b3127;
+    --ink: #f0e7d8;
+    --muted: #b4a68e;
+    --brand: #f08b3c;
+    --mark: #7cb0ff;
+    --warn-bg: #3a2c12;
+    --warn-ink: #f3c87a;
+    --code-bg: #2e2619;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 400 16px/1.65 var(--font-body);
+    -webkit-text-size-adjust: 100%;
+  }
+  img { max-width: 100%; }
+
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    padding-block: 0 72px;
+  }
+
+  /* --- Đầu trang --- */
+  header.top { padding-block: 44px 28px; border-bottom: 2px solid var(--line); }
+  .brand {
+    font: 700 13px/1 var(--font-body);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brand);
+  }
+  h1 {
+    font: 700 clamp(2.1rem, 5vw, 3.1rem)/1.1 var(--font-display);
+    margin: 10px 0 12px;
+    text-wrap: balance;
+  }
+  .lede { font-size: 1.05rem; color: var(--muted); max-width: 62ch; margin: 0; }
+  .facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .fact {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px 14px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .fact b { color: var(--ink); font-weight: 600; }
+
+  /* --- Bố cục chính --- */
+  .cols { display: grid; grid-template-columns: 1fr; gap: 36px; margin-top: 36px; }
+  @media (min-width: 960px) {
+    .cols { grid-template-columns: 210px minmax(0, 1fr); gap: 48px; align-items: start; }
+    nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); }
+  }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  nav.toc a {
+    display: block;
+    padding: 6px 10px;
+    border-left: 2px solid var(--line);
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  nav.toc a:hover { color: var(--brand); border-left-color: var(--brand); background: var(--card); }
+  nav.toc .toc-title {
+    font: 700 12px/1 var(--font-body);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  main { min-width: 0; display: flex; flex-direction: column; gap: 44px; }
+  section { scroll-margin-top: 20px; }
+  h2 {
+    font: 600 1.65rem/1.25 var(--font-display);
+    margin: 0 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+    text-wrap: balance;
+  }
+  h3 { font: 600 1.05rem/1.4 var(--font-body); margin: 24px 0 8px; }
+  p { margin: 0 0 12px; max-width: 68ch; }
+  ul, ol { margin: 0 0 12px; padding-left: 22px; max-width: 68ch; }
+  li { margin-bottom: 6px; }
+  li::marker { color: var(--brand); }
+  a { color: var(--brand); }
+  strong { font-weight: 600; }
+
+  code {
+    font: 500 0.88em/1.5 var(--font-mono);
+    background: var(--code-bg);
+    border-radius: 5px;
+    padding: 1px 6px;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 0 0 14px;
+  }
+  pre code { background: none; padding: 0; font-size: 0.86rem; }
+  .cmt { color: var(--muted); }
+
+  /* --- Thành phần --- */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-bottom: 14px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px;
+    min-width: 0;
+  }
+  .card h4 { font: 600 1rem/1.3 var(--font-body); margin: 0 0 6px; }
+  .card p { font-size: 0.92rem; color: var(--muted); margin: 0; }
+  .card .tag {
+    display: inline-block;
+    font: 600 11px/1 var(--font-body);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--brand);
+    margin-bottom: 8px;
+  }
+
+  .steps { list-style: none; padding: 0; margin: 0 0 14px; counter-reset: step; display: flex; flex-direction: column; gap: 14px; }
+  .steps > li {
+    counter-increment: step;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px 16px 58px;
+    position: relative;
+    margin: 0;
+    max-width: none;
+  }
+  .steps > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 16px;
+    top: 15px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font: 700 14px/28px var(--font-body);
+    text-align: center;
+  }
+  .steps h3 { margin: 0 0 6px; }
+  .steps p:last-child, .steps ul:last-child { margin-bottom: 0; }
+
+  .scroll { overflow-x: auto; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.92rem; background: var(--card); }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 600; background: var(--paper); white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .note {
+    background: var(--warn-bg);
+    color: var(--warn-ink);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.92rem;
+    margin-bottom: 14px;
+  }
+  .note b { color: inherit; }
+  .note p:last-child { margin-bottom: 0; }
+
+  .kbd {
+    font: 600 0.82em/1 var(--font-mono);
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    padding: 3px 7px;
+    background: var(--card);
+    white-space: nowrap;
+  }
+
+  .support { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+  .support > div { flex: 1 1 280px; min-width: 0; }
+  .support h3 { margin-top: 18px; }
+  .qr {
+    margin: 0;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px;
+    text-align: center;
+  }
+  .qr img { display: block; width: 260px; max-width: 100%; height: auto; border-radius: 8px; }
+  .qr figcaption { margin-top: 10px; font-size: 0.82rem; color: var(--muted); }
+
+  footer {
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="brand">Hướng dẫn sử dụng</div>
+  <h1>StoryTools</h1>
+  <p class="lede">
+    Tool chạy trên máy bạn, biến một cốt truyện thành bộ ảnh truyện tranh có lời thoại tiếng Việt, sẵn sàng đăng TikTok hoặc YouTube.
+    Gemini viết kịch bản và vẽ ảnh; chữ được chèn bằng code nên không bao giờ sai dấu.
+  </p>
+  <div class="facts">
+    <span class="fact">Giao diện <b>127.0.0.1:5173</b></span>
+    <span class="fact">Khổ <b>9:16</b> và <b>16:9</b></span>
+    <span class="fact">Tối đa <b>35 ảnh</b> mỗi bài TikTok</span>
+    <span class="fact">Dữ liệu nằm trong <b>data/</b></span>
+  </div>
+</header>
+
+<div class="cols">
+  <nav class="toc">
+    <div class="toc-title">Nội dung</div>
+    <ol>
+      <li><a href="#chay">Khởi động</a></li>
+      <li><a href="#khai-niem">Truyện, Ảnh, Khung</a></li>
+      <li><a href="#nhan-vat">Nhân vật</a></li>
+      <li><a href="#tu-dong">Tạo truyện tự động</a></li>
+      <li><a href="#bon-buoc">Bốn bước thủ công</a></li>
+      <li><a href="#bong-thoai">Chỉnh bóng thoại</a></li>
+      <li><a href="#dang">Duyệt và đăng TikTok</a></li>
+      <li><a href="#chi-phi">Chi phí và model</a></li>
+      <li><a href="#meo">Mẹo giữ nhân vật</a></li>
+      <li><a href="#su-co">Xử lý sự cố</a></li>
+      <li><a href="#du-lieu">Dữ liệu và sao lưu</a></li>
+      <li><a href="#ung-ho">Ủng hộ và cộng đồng</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section id="chay">
+      <h2>Khởi động</h2>
+      <p>Mở terminal tại thư mục dự án và chạy:</p>
+<pre><code>npm install
+npm run dev     <span class="cmt"># mở http://127.0.0.1:5173</span></code></pre>
+      <p>
+        Lần đầu cần có <strong>Gemini API key</strong>: lấy ở
+        <a href="https://aistudio.google.com/apikey">aistudio.google.com/apikey</a>, rồi dán vào tab <strong>Cài đặt</strong>
+        (hoặc chép <code>.env.example</code> thành <code>.env</code> và điền <code>GEMINI_API_KEY</code>). Key phải bật thanh toán
+        vì model vẽ ảnh không có gói miễn phí.
+      </p>
+      <p>Muốn chạy bản build thay vì bản dev: <code>npm run build</code> rồi <code>npm start</code>, mở <code>http://127.0.0.1:5174</code>.</p>
+      <div class="note">
+        Tool chỉ lắng nghe ở <code>127.0.0.1</code>, máy khác trong mạng không vào được. Riêng tính năng chia sẻ qua Wi-Fi mở tạm một
+        cổng khác, chỉ khi bạn bấm và tự tắt sau 30 phút.
+      </div>
+    </section>
+
+    <section id="khai-niem">
+      <h2>Truyện, Ảnh, Khung</h2>
+      <p>Ba mức này quyết định mọi thao tác còn lại, nên nắm trước khi bắt đầu.</p>
+      <div class="cards">
+        <div class="card">
+          <span class="tag">Mức 1</span>
+          <h4>Truyện</h4>
+          <p>Một bài đăng. Quy định khổ ảnh (dọc 9:16 cho TikTok, ngang 16:9 cho YouTube), phong cách vẽ, dàn nhân vật và cốt truyện.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Mức 2</span>
+          <h4>Ảnh</h4>
+          <p>Một slide người xem lướt qua. Mỗi ảnh có ý tưởng riêng và bố cục riêng: 1 khung tràn ảnh, hoặc 2, 3, 4, 6 khung.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Mức 3</span>
+          <h4>Khung</h4>
+          <p>Một lần gọi AI vẽ. Có bối cảnh, hành động, biểu cảm, lời thoại và prompt riêng. Tiền chủ yếu tốn ở đây.</p>
+        </div>
+      </div>
+      <p>
+        Ảnh 1 khung được in tràn toàn khổ, không viền. Ảnh nhiều khung mới được ghép lại thành lưới có viền.
+        Truyện 5 ảnh, mỗi ảnh 2 khung nghĩa là 10 lần gọi AI vẽ.
+      </p>
+    </section>
+
+    <section id="nhan-vat">
+      <h2>Nhân vật</h2>
+      <p>
+        Đây là phần quyết định truyện có đồng nhất hay không, nên làm kỹ trước khi tạo truyện. Vào tab <strong>Nhân vật</strong>,
+        bấm <strong>+ Thêm nhân vật</strong> và điền:
+      </p>
+      <ul>
+        <li><strong>Tên</strong>: dùng đúng tên này khi viết cốt truyện để Gemini gán vai chính xác.</li>
+        <li><strong>Mô tả cố định</strong>: tuổi, kiểu tóc, màu mắt, trang phục, phụ kiện. Càng cụ thể càng ổn định. Ví dụ: <em>cậu bé 13 tuổi, tóc đen rối xù, áo polo vàng mù tạt, tạp dề xanh rêu, giày vải đỏ</em>.</li>
+        <li><strong>Ảnh tham chiếu</strong>: 1–3 ảnh rõ mặt, nền đơn giản. Mọi lần vẽ đều gửi kèm các ảnh này.</li>
+      </ul>
+      <p>Mô tả được chèn tự động vào prompt của mọi khung có nhân vật đó, nên không cần nhắc lại khi viết kịch bản.</p>
+    </section>
+
+    <section id="tu-dong">
+      <h2>Tạo truyện tự động</h2>
+      <p>Cách nhanh nhất: chỉ nhập cốt truyện, phần còn lại tool tự chạy. Vào <strong>Truyện → tạo truyện mới → bước 1. Kịch bản</strong>, thẻ <strong>🤖 Tự động tạo truyện</strong>.</p>
+      <ol class="steps">
+        <li>
+          <h3>Nhập cốt truyện</h3>
+          <p>Viết vài câu về diễn biến và cái kết, gọi nhân vật đúng tên. Chọn <strong>số ảnh</strong> (1–35) và <strong>khung mỗi ảnh</strong>: cố định 1–4, hoặc để Gemini tự chọn 1–3 tuỳ cảnh.</p>
+        </li>
+        <li>
+          <h3>Chọn model ảnh và xem giá</h3>
+          <p>Dropdown <strong>Model ảnh</strong> ghi sẵn giá mỗi ảnh, bên cạnh là ước tính cho cả truyện, ví dụ <em>≈ $0.35 cho 10 khung</em>. Đổi model ở đây là lưu luôn cho cả tool.</p>
+        </li>
+        <li>
+          <h3>Bấm Tự động tạo cả truyện</h3>
+          <p>Tool hỏi xác nhận chi phí, rồi chạy tuần tự: Gemini viết toàn bộ kịch bản trong một lần gọi, vẽ từng khung (gửi kèm ảnh khung trước để giữ phong cách), sau đó nhìn ảnh vừa vẽ để đặt bóng thoại vào vùng trống và chỉnh câu thoại cho khớp biểu cảm.</p>
+          <p>Muốn đọc kịch bản trước khi tốn tiền vẽ thì tick <strong>Dừng lại để duyệt kịch bản trước khi vẽ</strong>.</p>
+        </li>
+        <li>
+          <h3>Duyệt kết quả</h3>
+          <p>Chạy xong tool tự chuyển sang bước 3 để bạn sửa lời thoại và vị trí bóng, rồi sang bước 4 để đăng.</p>
+        </li>
+      </ol>
+      <p>
+        Đang chạy có thể bấm <strong>Dừng</strong>, tool dừng sau khung hiện tại. Phần dở dang chạy tiếp bằng nút
+        <strong>Vẽ N khung còn thiếu &amp; đặt thoại</strong>. Chuyển sang tab khác tiến trình vẫn chạy, thanh tiến trình hiện trên đầu trang.
+      </p>
+    </section>
+
+    <section id="bon-buoc">
+      <h2>Bốn bước thủ công</h2>
+      <p>Khi muốn kiểm soát từng ảnh, làm lần lượt bốn bước trong trang soạn truyện.</p>
+      <ol class="steps">
+        <li>
+          <h3>Kịch bản</h3>
+          <p>Chọn khổ ảnh, phong cách vẽ và dàn nhân vật. Bấm <strong>+ Thêm ảnh thủ công</strong> cho từng ảnh, nhập ý tưởng, chọn bố cục rồi bấm <strong>✨ Gemini viết N khung</strong>. Sửa lại bối cảnh, hành động, biểu cảm, lời thoại của từng khung nếu cần.</p>
+        </li>
+        <li>
+          <h3>Prompt &amp; ảnh</h3>
+          <p>Prompt tự ghép từ phong cách, ý tưởng ảnh, mô tả nhân vật và nội dung khung; sửa tay được. Vẽ từng khung bằng <strong>Tạo ảnh</strong> hoặc vẽ hàng loạt các khung còn thiếu. Mỗi lần vẽ lại đều được giữ, bấm thumbnail để chọn bản ưng ý. Có sẵn nút tải ảnh ngoài lên nếu bạn tự vẽ.</p>
+        </li>
+        <li>
+          <h3>Lời thoại &amp; ghép</h3>
+          <p>Chọn từng ảnh để xem bản ghép thật. Bóng thoại tự đặt từ lời thoại trong kịch bản; chỉnh bằng chuột theo bảng ở mục dưới. Ảnh nhiều khung được ghép có viền, ảnh 1 khung giữ tràn ảnh.</p>
+        </li>
+        <li>
+          <h3>Duyệt &amp; đăng</h3>
+          <p>Lướt toàn bộ truyện như carousel, viết caption, rồi chuyển ảnh sang điện thoại để đăng.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section id="bong-thoai">
+      <h2>Chỉnh bóng thoại</h2>
+      <p>Toàn bộ thao tác nằm trên khung tranh ở bước 3.</p>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr><th>Thao tác</th><th>Kết quả</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Bấm vào bóng thoại</td><td>Chọn bóng, cột phải hiện ô sửa chữ và thanh chỉnh cỡ chữ</td></tr>
+            <tr><td><strong>Nhấp đúp</strong> vào bóng thoại</td><td>Sửa chữ ngay trên ảnh. <span class="kbd">Enter</span> lưu, <span class="kbd">Esc</span> huỷ</td></tr>
+            <tr><td>Kéo thân bóng</td><td>Di chuyển bóng, đuôi vẫn chỉ về chỗ cũ</td></tr>
+            <tr><td>Kéo chấm xanh</td><td>Đổi hướng và độ dài đuôi bóng, trỏ về người đang nói</td></tr>
+            <tr><td>Kéo ô vuông bên phải</td><td>Đổi độ rộng bóng, chữ tự xuống dòng theo</td></tr>
+            <tr><td>Nút <strong>✨ AI đặt thoại</strong></td><td>Gemini nhìn lại ảnh và đặt bóng vào vùng trống, có thể chỉnh nhẹ câu chữ</td></tr>
+            <tr><td>Nút <strong>+ Bóng</strong> / <strong>Đặt lại</strong></td><td>Thêm bóng trống, hoặc đặt lại theo mẫu từ lời thoại trong kịch bản</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Sửa lời thoại ở bước 1 sẽ đặt lại bóng thoại của khung đó, nên hãy chốt lời thoại trước rồi mới tinh chỉnh vị trí.</p>
+    </section>
+
+    <section id="dang">
+      <h2>Duyệt và đăng TikTok</h2>
+      <p>Bước 4 gom mọi thứ cần cho một bài đăng. Phía trên là carousel xem lại cả truyện, dùng phím <span class="kbd">←</span> <span class="kbd">→</span> để lướt.</p>
+      <h3>Caption và nhạc</h3>
+      <p>
+        Bấm <strong>✨ Gemini viết caption</strong> để có tiêu đề (tối đa 90 ký tự), caption, hashtag, gợi ý mood nhạc và từ khoá tìm nhạc.
+        Có nút copy riêng cho tiêu đề và cho caption kèm hashtag. Trạng thái <strong>Nháp / Đã duyệt / Đã đăng</strong> hiện luôn ở danh sách truyện.
+      </p>
+      <h3>Chuyển ảnh sang điện thoại</h3>
+      <p>Hai cách:</p>
+      <ul>
+        <li><strong>📱 Chia sẻ qua Wi-Fi</strong>: hiện mã QR, quét bằng camera điện thoại cùng mạng Wi-Fi. Trang mở ra có ảnh theo thứ tự, nút tải ảnh, và nút copy tiêu đề, caption, gợi ý nhạc ngay trên điện thoại. Link tự tắt sau 30 phút.</li>
+        <li><strong>Tải PNG tất cả ảnh</strong> hoặc <strong>Xuất PDF</strong> về máy rồi tự chuyển.</li>
+      </ul>
+      <h3>Các bước đăng</h3>
+      <ol>
+        <li>Lưu ảnh vào điện thoại theo đúng thứ tự 1, 2, 3…</li>
+        <li>TikTok → nút <strong>+</strong> → Tải lên → chọn ảnh theo đúng thứ tự đó.</li>
+        <li>Thêm âm thanh: tìm trong thư viện TikTok theo từ khoá mà Gemini gợi ý.</li>
+        <li>Dán tiêu đề và caption, rồi đăng.</li>
+        <li>Quay lại tool đánh dấu <strong>Đã đăng</strong>.</li>
+      </ol>
+      <div class="note">
+        <p><b>Vì sao phải đăng tay:</b> API của TikTok không cho chọn một bài nhạc cụ thể trong thư viện, và app chưa qua kiểm duyệt chỉ đăng được bài ở chế độ riêng tư. Đăng tay nhanh hơn và được chọn đúng nhạc đang trend.</p>
+      </div>
+      <p>Lần đầu bấm chia sẻ Wi-Fi, Windows sẽ hỏi quyền mạng cho Node.js. Chọn cho phép <strong>Private networks</strong>.</p>
+    </section>
+
+    <section id="chi-phi">
+      <h2>Chi phí và model</h2>
+      <p>Gần như toàn bộ chi phí nằm ở việc vẽ ảnh. Phần viết kịch bản, đặt lời thoại và viết caption cộng lại thường chưa tới 10 xu mỗi truyện.</p>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr><th>Model ảnh</th><th class="num">Giá mỗi ảnh</th><th>Dùng khi</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Gemini 3.1 Flash Lite Image</td><td class="num">~$0.035</td><td>Thử bố cục, thử prompt, làm nháp</td></tr>
+            <tr><td>Gemini 3.1 Flash Image</td><td class="num">~$0.070</td><td>Mặc định, cân bằng giữa giá và chất lượng</td></tr>
+            <tr><td>Gemini 3 Pro Image</td><td class="num">~$0.146</td><td>Ảnh bìa hoặc khung quan trọng</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Một truyện khoảng 20 khung, mỗi khung vẽ trung bình 2–3 lần mới ưng: Flash Lite khoảng $1.7, Flash khoảng $3.5, Pro khoảng $7.</p>
+      <p>
+        Model viết kịch bản đặt riêng ở tab <strong>Cài đặt</strong>, mặc định <code>gemini-3.8-flash</code>. Danh sách gợi ý được lấy
+        trực tiếp từ API key của bạn. Cách giảm tiền hiệu quả nhất không phải đổi model, mà là viết mô tả nhân vật thật kỹ để bớt số lần vẽ lại.
+      </p>
+    </section>
+
+    <section id="meo">
+      <h2>Mẹo giữ nhân vật</h2>
+      <ul>
+        <li>Ảnh tham chiếu nên chụp rõ mặt, đủ sáng, nền đơn giản, và cùng một phong cách vẽ với truyện.</li>
+        <li>Giữ bật tuỳ chọn <strong>Gửi kèm ảnh khung trước</strong> ở bước 2: khung sau bám theo màu sắc và nét vẽ của khung trước.</li>
+        <li>Mô tả nhân vật nên nói về đặc điểm không đổi (tóc, dáng người, trang phục thường ngày), còn cảm xúc và tư thế để phần biểu cảm và hành động của từng khung lo.</li>
+        <li>Khung nào lệch nhân vật thì bấm <strong>Tạo lại</strong> riêng khung đó, lịch sử ảnh cũ vẫn được giữ để quay về.</li>
+        <li>Muốn có đồng hồ hay mốc thời gian thì ghi thẳng vào bối cảnh hoặc prompt; tool không còn trường giờ riêng vì AI hay vẽ đồng hồ thừa.</li>
+      </ul>
+    </section>
+
+    <section id="su-co">
+      <h2>Xử lý sự cố</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr><th>Hiện tượng</th><th>Cách xử lý</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Lỗi 404 <em>“no longer available to new users”</em></td>
+              <td>Model đời cũ đã bị Google khoá. Vào Cài đặt chọn model mới hơn, ví dụ <code>gemini-3.8-flash</code>.</td>
+            </tr>
+            <tr>
+              <td>Lỗi 429, báo vượt quota</td>
+              <td>Kiểm tra thanh toán của API key, hoặc chờ vài phút rồi bấm vẽ tiếp phần còn thiếu.</td>
+            </tr>
+            <tr>
+              <td>Gemini không trả về ảnh</td>
+              <td>Thường do prompt bị chặn. Sửa lại câu mô tả ở bước 2 rồi tạo lại khung đó.</td>
+            </tr>
+            <tr>
+              <td>Điện thoại không mở được mã QR</td>
+              <td>Kiểm tra hai máy cùng Wi-Fi, cho phép Node.js qua tường lửa ở mạng Private, và thử địa chỉ khác trong danh sách (bỏ qua các adapter vEthernet, WSL).</td>
+            </tr>
+            <tr>
+              <td>Trình duyệt chặn khi tải nhiều PNG</td>
+              <td>Cho phép trang tải nhiều file, hoặc dùng Xuất PDF rồi tách ảnh sau.</td>
+            </tr>
+            <tr>
+              <td>Chữ trong bóng thoại bị tràn</td>
+              <td>Kéo ô vuông bên phải để nới rộng bóng, hoặc giảm cỡ chữ ở thanh trượt cột phải.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="du-lieu">
+      <h2>Dữ liệu và sao lưu</h2>
+      <p>
+        Mọi thứ nằm trong thư mục <code>data/</code> của dự án: <code>characters.json</code>, <code>projects/</code> (mỗi truyện một file JSON),
+        <code>characters/</code> và <code>panels/</code> chứa ảnh, <code>settings.json</code> chứa API key. Thư mục này đã được gitignore.
+      </p>
+      <ul>
+        <li>Sao lưu bằng cách copy nguyên thư mục <code>data/</code>.</li>
+        <li>Xoá một truyện trong tool sẽ xoá luôn các ảnh đã vẽ của truyện đó.</li>
+        <li>Không chia sẻ <code>settings.json</code> cho người khác vì có API key.</li>
+      </ul>
+    </section>
+
+    <section id="ung-ho">
+      <h2>Ủng hộ và cộng đồng</h2>
+      <div class="support">
+        <div>
+          <p>
+            Tool này miễn phí. Nếu nó giúp bạn tiết kiệm thời gian, bạn có thể mời mình một ly cà phê qua VietQR.
+            Quét mã bên cạnh bằng app ngân hàng bất kỳ. Cảm ơn bạn, mọi ủng hộ đều được dùng để tiếp tục phát triển tool.
+          </p>
+          <h3>Cộng đồng AZ Builder</h3>
+          <p>
+            Nhóm học AI, trao đổi về cách dùng AI làm nội dung:<br />
+            <a href="https://web.facebook.com/groups/1078217401795712">facebook.com/groups/1078217401795712</a>
+          </p>
+        </div>
+        <figure class="qr">
+          <img src="images/donate-techcombank-qr.png" alt="Mã VietQR ủng hộ qua Techcombank" width="260" height="310" />
+          <figcaption>Techcombank · VietQR · Napas 247</figcaption>
+        </figure>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  StoryTools · Hướng dẫn cập nhật ngày 2 tháng 10, 2026 · File này nằm ở <code>docs/huong-dan-su-dung.html</code>, mở trực tiếp bằng trình duyệt.
+</footer>
+
+</div>
+</body>
+</html>
